@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>do not inspect</title>
+<link rel="icon" type="image/png" href="icon.png">
+<style>
+  html, body { height:100%; margin:0; display:flex; justify-content:center; align-items:center; background:#fff; font-family:sans-serif; font-size:24px; }
+</style>
+</head>
+<body>
+
+<div id="msg">do not inspect</div>
+
+<script>
+const msg = document.getElementById('msg');
+const originalText = "do not inspect";
+let inspectBlocked = false;
+const startTime = Date.now();
+
+// --- Detect devtools opening ---
+function devtoolsDetect() {
+    const threshold = 160;
+    const width = window.outerWidth - window.innerWidth;
+    const height = window.outerHeight - window.innerHeight;
+    if ((width > threshold || height > threshold) && !inspectBlocked) {
+        inspectBlocked = true;
+        msg.textContent = "do not inspect..";
+    }
+}
+
+// --- Check letter-by-letter tampering ---
+function checkTextTamper() {
+    const current = msg.textContent;
+    if (current.length !== originalText.length) {
+        msg.textContent = "DO NOT INSPECT >:c";
+        return;
+    }
+    for (let i = 0; i < originalText.length; i++) {
+        if (current[i] !== originalText[i]) {
+            msg.textContent = "DO NOT INSPECT >:c";
+            break;
+        }
+    }
+}
+
+// --- 35-second win condition ---
+function checkBeatTime() {
+    if (!inspectBlocked && Date.now() - startTime >= 35000) {
+        msg.textContent = "you can inspect c:";
+        // Next devtools opening closes site
+        const closeChecker = setInterval(() => {
+            const width = window.outerWidth - window.innerWidth;
+            const height = window.outerHeight - window.innerHeight;
+            if (width > 160 || height > 160) {
+                window.close();
+                clearInterval(closeChecker);
+            }
+        }, 100);
+    }
+}
+
+// Poll everything extremely fast for maximum catch
+setInterval(() => {
+    devtoolsDetect();
+    checkTextTamper();
+    checkBeatTime();
+}, 30); // checks ~33 times per second
+</script>
+
+</body>
+</html>
